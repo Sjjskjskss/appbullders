@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050a1c">
+<title>SS App Builders – HTML to APK</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:#050a1c;--card:#0d1533;--line:#2a3a7a;--txt:#e9edff;--mut:#8f9bc9;--acc:#3b5bff;--acc2:#5d7cff;--err:#ff6b81;--ok:#37d9a0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:radial-gradient(900px 500px at 50% -10%,#1a2a6e55,transparent),linear-gradient(#050a1c,#070d26);background-attachment:fixed;padding-bottom:40px}
+body::before{content:"";position:fixed;inset:0;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:56px 56px;pointer-events:none}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:14px 18px;background:#050a1ce6;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:17px;color:#fff;background:linear-gradient(135deg,#3b5bff,#8a5cff);border:2px solid #4c6bff;box-shadow:0 0 18px #3b5bff66}
+.brand b{font-size:19px;display:flex;align-items:center;gap:7px}
+.tick{width:18px;height:18px;border-radius:50%;background:#12d6ff;display:inline-grid;place-items:center}
+.tick svg{width:11px;height:11px}
+.brand small{display:block;letter-spacing:.28em;font-size:10.5px;font-weight:600;color:#a9b6ff;margin-top:3px}
+main{position:relative;max-width:520px;margin:22px auto;padding:0 16px}
+.card{border:1px solid var(--line);border-radius:30px;padding:28px 22px;background:linear-gradient(160deg,#1b2a6b66,#0b1231 45%,#080e26);box-shadow:0 20px 60px #0008,inset 0 1px 0 #ffffff12}
+h1{font-size:44px;font-weight:500;text-align:center;margin:4px 0 6px;letter-spacing:-.02em;background:linear-gradient(#fff,#b7c2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-size:22px;text-align:center;color:#c9d2ff;margin:0 0 26px}
+label.t{display:block;font-weight:600;font-size:15.5px;margin:20px 0 9px}
+label.t span{color:var(--mut);font-weight:400}
+input[type=text]{width:100%;padding:17px 18px;border-radius:20px;border:1px solid var(--line);background:#ffffff0d;color:var(--txt);font:inherit;font-size:16px;outline:none}
+input[type=text]:focus{border-color:var(--acc2);box-shadow:0 0 0 3px #3b5bff33}
+input::placeholder{color:#7482b5}
+.drop{position:relative;border:1.5px dashed #5568c9;border-radius:22px;padding:22px 14px;text-align:center;cursor:pointer;background:#1a2a6e33;transition:.2s}
+.drop:hover,.drop.on{border-color:#8fa3ff;background:#1a2a6e66}
+.drop svg{width:30px;height:30px;stroke:#d5dcff;fill:none;stroke-width:1.7}
+.drop b{display:block;margin-top:8px;font-size:17px}
+.drop small{color:var(--mut);font-size:14px}
+.drop.has{border-style:solid;border-color:var(--ok);background:#37d9a010}
+.drop.has b{color:var(--ok);word-break:break-all;font-size:15px}
+.drop img{width:64px;height:64px;border-radius:14px;object-fit:cover;display:block;margin:0 auto 4px}
+.page{border:1px solid #232f66;border-radius:24px;padding:16px;background:#0a1030a0;margin-top:18px;position:relative}
+.page h4{margin:0 0 12px;font-size:16px;font-weight:600}
+.rm{position:absolute;right:12px;top:10px;background:#ff6b8120;color:var(--err);border:0;border-radius:10px;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer}
+.add{width:100%;margin-top:18px;padding:17px;border-radius:22px;border:1.5px dashed #4a5aa8;background:transparent;color:var(--txt);font:inherit;font-size:17px;font-weight:600;cursor:pointer}
+.add:disabled{opacity:.4;cursor:not-allowed}
+.btn{display:block;width:100%;margin-top:26px;padding:19px;border:1px solid #6b85ff;border-radius:999px;background:linear-gradient(90deg,#2f4bdc,#4b6bff,#6a85ff);color:#fff;font:inherit;font-size:19px;font-weight:700;cursor:pointer;box-shadow:0 10px 30px #3b5bff55;text-align:center;text-decoration:none}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent;box-shadow:none;border-color:var(--line);font-size:16px;padding:14px;margin-top:14px}
+.err{margin-top:18px;padding:14px 16px;border-radius:16px;background:#ff6b8118;border:1px solid #ff6b8166;color:#ffb3bf;font-size:14.5px;line-height:1.5;display:none;white-space:pre-wrap;word-break:break-word}
+.hide{display:none!important}
+.center{text-align:center}
+.spin{width:96px;height:96px;margin:18px auto 24px;border-radius:50%;border:5px solid #ffffff14;border-top-color:var(--acc2);animation:r 1s linear infinite;box-shadow:0 0 30px #3b5bff44}
+@keyframes r{to{transform:rotate(360deg)}}
+.bar{height:12px;border-radius:99px;background:#ffffff14;overflow:hidden;margin:22px 0 10px}
+.bar i{display:block;height:100%;width:3%;border-radius:99px;background:linear-gradient(90deg,#3b5bff,#8fa3ff);transition:width .8s ease}
+.stage{font-size:17px;font-weight:600}
+.note{color:var(--mut);font-size:14px;margin-top:8px;line-height:1.5}
+.blocks{width:150px;margin:6px auto 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;filter:drop-shadow(0 0 18px #3b5bff88)}
+.blocks i{aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#5f7bff,#8fa3ff)}
+.blocks i:nth-child(4){grid-column:1}.blocks i:nth-child(7){grid-column:2}
+.done h2{font-size:40px;font-weight:500;margin:6px 0 10px}
+.dl{display:flex;align-items:center;gap:14px;margin-top:26px;padding:12px;border-radius:999px;border:1px solid #6b85ff;background:linear-gradient(90deg,#2f4bdc,#5b78ff);color:#fff;text-decoration:none;font-weight:700;font-size:19px;text-align:left}
+.dl .ic{width:50px;height:50px;border-radius:50%;border:1px solid #ffffff55;display:grid;place-items:center;flex:none}
+.dl .go{margin-left:auto;width:50px;height:50px;border-radius:50%;background:#fff;color:#2f4bdc;display:grid;place-items:center;flex:none;font-size:22px}
+.dl svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2}
+foot{display:block;text-align:center;color:#6d7bb3;font-size:12.5px;margin-top:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SS</div>
+  <div class="brand"><b>SS App Builders <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#04202b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span></b><small>OFFICIAL WEBSITE</small></div>
+</header>
+
+<main>
+  <!-- FORM -->
+  <section class="card" id="vForm">
+    <h1>SS App Builders</h1>
+    <p class="sub">Enterprise HTML to APK Compilation</p>
+
+    <label class="t" for="appName">Application Name</label>
+    <input type="text" id="appName" placeholder="e.g., Nexus Protocol" maxlength="80" autocomplete="off">
+
+    <label class="t">Application Icon <span>(Optional)</span></label>
+    <div class="drop" id="iconDrop">
+      <div id="iconInner">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
+        <b>Upload PNG Asset</b><small>Maximum size: 5MB</small>
+      </div>
+      <input type="file" id="iconFile" accept="image/png,image/jpeg" hidden>
+    </div>
+
+    <div id="pages"></div>
+    <button class="add" id="addPage" type="button">+ Add More Pages (Max 10)</button>
+
+    <div class="err" id="err"></div>
+    <button class="btn" id="go" type="button">Compile Application</button>
+  </section>
+
+  <!-- BUILDING -->
+  <section class="card center hide" id="vBuild">
+    <div class="spin"></div>
+    <h1 style="font-size:34px">Compiling…</h1>
+    <div class="stage" id="stage">Uploading source</div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="note">Please keep this page open. This can take up to two minutes.</div>
+  </section>
+
+  <!-- DONE -->
+  <section class="card center done hide" id="vDone">
+    <div class="blocks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <h2>Build Complete</h2>
+    <p class="sub" style="font-size:23px;margin-bottom:0">Your application package has been successfully compiled and signed.</p>
+    <a class="dl" id="dl" href="#" download="app.apk">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>Download<br>APK</span><span class="go">↗</span>
+    </a>
+    <p class="note" id="fileInfo"></p>
+    <p class="note">✅ আপনার APK তৈরি হয়ে গেছে — এখনই ডাউনলোড করুন।</p>
+    <button class="btn ghost" id="again" type="button">Build another app</button>
+  </section>
+
+  <foot>© SS App Builders • Test builds use a temporary signing key</foot>
+</main>
+
+<script>
+const API_URL = "https://app-creator-x.ueu.workers.dev/api/v1/build";
+const MAX_PAGES = 10, MAX_HTML = 10*1024*1024, MAX_ICON = 5*1024*1024, MAX_PIXELS = 4e6, MAX_TOTAL = 16*1024*1024;
+const $ = id => document.getElementById(id);
+let iconFile = null, pages = [null]; // page slots
+
+/* ---------- views ---------- */
+function show(id){["vForm","vBuild","vDone"].forEach(v=>$(v).classList.toggle("hide",v!==id));scrollTo({top:0,behavior:"smooth"})}
+function showErr(m){const e=$("err");e.textContent=m;e.style.display=m?"block":"none";if(m)e.scrollIntoView({block:"center",behavior:"smooth"})}
+
+/* ---------- icon ---------- */
+$("iconDrop").onclick = () => $("iconFile").click();
+$("iconFile").onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  iconFile = f;
+  const d = $("iconDrop"); d.classList.add("has");
+  $("iconInner").innerHTML = `<img src="${URL.createObjectURL(f)}" alt=""><b></b><small>Tap to change</small>`;
+  $("iconInner").querySelector("b").textContent = f.name;
+};
+
+/* ---------- pages ---------- */
+function renderPages(){
+  const box = $("pages"); box.innerHTML = "";
+  pages.forEach((f,i)=>{
+    const wrap = document.createElement("div"); wrap.className = "page";
+    wrap.innerHTML = `<h4>${i===0?"Source Code (HTML)":"Page "+(i+1)}</h4>
+      ${i>0?'<button class="rm" type="button">Remove</button>':''}
+      <div class="drop ${f?'has':''}">
+        <svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <b></b><small></small>
+        <input type="file" accept=".html,.htm,text/html" hidden>
+      </div>`;
+    const drop = wrap.querySelector(".drop"), inp = wrap.querySelector("input");
+    wrap.querySelector("b").textContent = f ? f.name : "Upload HTML File";
+    wrap.querySelector("small").textContent = f ? (f.size/1024).toFixed(1)+" KB • tap to change" : "Single .html or .htm format";
+    drop.onclick = () => inp.click();
+    inp.onchange = e => { if(e.target.files[0]){ pages[i]=e.target.files[0]; renderPages(); } };
+    const rm = wrap.querySelector(".rm"); if(rm) rm.onclick = () => { pages.splice(i,1); renderPages(); };
+    box.appendChild(wrap);
+  });
+  $("addPage").disabled = pages.length >= MAX_PAGES;
+}
+$("addPage").onclick = () => { if(pages.length<MAX_PAGES){ pages.push(null); renderPages(); } };
+renderPages();
+
+/* ---------- validation ---------- */
+function checkName(v){
+  v = v.trim();
+  if(!v) return "Please enter an application name.";
+  if(v.length > 80) return "App name is too long (max 80 characters).";
+  if(new TextEncoder().encode(v).length > 120) return "App name is too large (max 120 bytes).";
+  if([...v].some(c=>{const n=c.codePointAt(0);return n<32||(n>=127&&n<=159)})) return "App name cannot contain control characters.";
+  return "";
+}
+async function checkIcon(f){
+  if(f.size > MAX_ICON) return "Icon is larger than 5MB.";
+  if(!["image/png","image/jpeg"].includes(f.type)) return "Only PNG or JPEG icons are supported.";
+  const buf = new Uint8Array(await f.slice(0,64).arrayBuffer());
+  if(f.type==="image/png" && buf[28]===1) return "Interlaced PNG is not supported. Please export a regular PNG.";
+  try{
+    const bm = await createImageBitmap(f);
+    if(bm.width*bm.height > MAX_PIXELS) return "Icon is too large: maximum is 4 megapixels.";
+  }catch(e){ return "That file is not a valid image."; }
+  return "";
+}
+
+/* default icon when none uploaded */
+function makeIcon(name){
+  const c = document.createElement("canvas"); c.width = c.height = 512;
+  const x = c.getContext("2d"), g = x.createLinearGradient(0,0,512,512);
+  g.addColorStop(0,"#3b5bff"); g.addColorStop(1,"#8a5cff");
+  x.fillStyle = g; x.fillRect(0,0,512,512);
+  x.fillStyle = "#fff"; x.font = "700 280px system-ui,sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText([...name.trim()][0].toUpperCase(), 256, 280);
+  return new Promise(r => c.toBlob(b => r(b), "image/png"));
+}
+
+/* ---------- build ---------- */
+let timer;
+function startProgress(){
+  const st = ["Uploading source","Preparing WebView","Compiling Android package","Signing build","Finalizing APK"];
+  let i = 0, p = 4; $("fill").style.width = p+"%"; $("stage").textContent = st[0];
+  timer = setInterval(()=>{ p = Math.min(95, p + 3 + Math.random()*5); i = Math.min(st.length-1, Math.floor(p/20)); $("fill").style.width = p+"%"; $("stage").textContent = st[i]; }, 1500);
+}
+function stopProgress(){ clearInterval(timer); }
+
+$("go").onclick = async () => {
+  showErr("");
+  const name = $("appName").value.trim();
+  let e = checkName(name); if(e) return showErr(e);
+  const files = pages.filter(Boolean);
+  if(!files.length) return showErr("Please upload your HTML file.");
+  for(const f of files){
+    if(!/\.html?$/i.test(f.name)) return showErr(`"${f.name}" is not an .html/.htm file.`);
+    if(f.size > MAX_HTML) return showErr(`"${f.name}" is larger than 10MB.`);
+  }
+  if(iconFile){ e = await checkIcon(iconFile); if(e) return showErr(e); }
+
+  $("go").disabled = true;
+  try{
+    const fd = new FormData();
+    fd.append("app_name", name);
+
+    const icon = iconFile || await makeIcon(name);
+    fd.append("icon", icon, iconFile ? iconFile.name : "icon.png");
+
+    if(files.length === 1){
+      fd.append("html", files[0], files[0].name);
+    } else {
+      if(typeof JSZip === "undefined") throw new Error("ZIP library failed to load. Check your internet connection and reload.");
+      const zip = new JSZip(), used = new Set(["index.html"]);
+      zip.file("index.html", files[0]);               // first page = entry point
+      files.forEach((f,i)=>{                           // keep original names so links work
+        let n = f.name; if(used.has(n.toLowerCase())) n = `page${i+1}_${n}`;
+        used.add(n.toLowerCase()); zip.file(n, f);
+      });
+      const zb = await zip.generateAsync({type:"blob", mimeType:"application/zip"});
+      if(zb.size > MAX_HTML) throw new Error("Combined pages are larger than 10MB.");
+      fd.append("html", zb, "app.zip");
+    }
+    if(files.reduce((s,f)=>s+f.size,0) + icon.size > MAX_TOTAL) throw new Error("Files are too large together.");
+
+    show("vBuild"); startProgress();
+    const ctl = new AbortController(), to = setTimeout(()=>ctl.abort(), 150000);
+    let res;
+    try{ res = await fetch(API_URL, {method:"POST", body:fd, signal:ctl.signal}); }
+    finally{ clearTimeout(to); }
+
+    const type = res.headers.get("Content-Type") || "";
+    if(res.ok && type.includes("android.package-archive")){
+      const blob = await res.blob();
+      const cd = res.headers.get("Content-Disposition") || "";
+      const m = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+      let fn = m ? decodeURIComponent(m[1]).trim() : name.replace(/[^\w\-]+/g,"_") + ".apk";
+      if(!/\.apk$/i.test(fn)) fn += ".apk";
+      stopProgress();
+      const url = URL.createObjectURL(new Blob([blob], {type:"application/vnd.android.package-archive"}));
+      const a = $("dl"); a.href = url; a.download = fn;
+      $("fileInfo").textContent = `${fn} • ${(blob.size/1048576).toFixed(2)} MB`;
+      show("vDone");
+    } else {
+      let msg = ""; try{ const j = await res.json(); msg = j.error || JSON.stringify(j); }catch(_){ msg = await res.text().catch(()=>"") }
+      throw new Error(`Build failed (${res.status}). ${msg}`.trim());
+    }
+  }catch(err){
+    stopProgress(); show("vForm");
+    let m = err.name==="AbortError" ? "Build timed out. Please try again." : err.message;
+    if(err instanceof TypeError) m = "Could not reach the build server (network or CORS error). Check your internet and try again.\n\nIf this keeps happening, the build API may be blocking requests from a browser page — see the note about a proxy.";
+    showErr(m);
+  }finally{ $("go").disabled = false; }
+};
+
+$("again").onclick = () => {
+  pages = [null]; iconFile = null; $("appName").value = "";
+  $("iconFile").value = ""; $("iconDrop").classList.remove("has");
+  $("iconInner").innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><b>Upload PNG Asset</b><small>Maximum size: 5MB</small>`;
+  renderPages(); showErr(""); show("vForm");
+};
+</script>
+</body>
+</html>
